@@ -1,3 +1,8 @@
+## Project Background
+
+This is a continuation of the csc332_proj3(https://github.com/rocaaj/csc332_proj3). This new repository builds upon that foundation for the next phase of AWS native deployment.
+
+
 # 🏋️ Workout Timer App
 
 A full-stack web app that lets users create, save, and run customizable workout routines with timed work/rest intervals — and an optional **shake-to-skip** feature for mobile users.
