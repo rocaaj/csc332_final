@@ -11,8 +11,7 @@
  * ----------------------------------------------
  */
 
-// The public URL of your deployed backend API
-// Change this to match your Elastic Beanstalk CNAME:
+// Public URL of your deployed backend API (update if needed)
 const API_BASE = 'https://workout-docker-env.us-east-1.elasticbeanstalk.com';
 
 // Save a new workout to the database
@@ -21,19 +20,19 @@ export const saveWorkout = async (workout) => {
   const res = await fetch(`${API_BASE}/api/workouts`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    credentials: 'include', // Send cookies/session info
+    credentials: 'include',
     body: JSON.stringify(workout),
   });
-  return res.json(); // Returns the saved workout or error
+  return res.json();
 };
 
 // Fetch all saved workouts for the current user
 export const getWorkouts = async () => {
   const res = await fetch(`${API_BASE}/api/workouts`, {
     method: 'GET',
-    credentials: 'include', // Include session cookie
+    credentials: 'include',
   });
-  return res.json(); // Returns array of workout objects
+  return res.json();
 };
 
 // Delete a workout by ID
@@ -42,14 +41,35 @@ export const deleteWorkout = async (id) => {
     method: 'DELETE',
     credentials: 'include',
   });
-  return res.json(); // Returns success or error
+  return res.json();
 };
 
-// Logout the current user (ends the session)
+// Check if the user is already logged in (session exists)
+export const checkSession = async () => {
+  try {
+    const res = await fetch(`${API_BASE}/api/auth/session`, {
+      method: 'GET',
+      credentials: 'include',
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.username || null;
+  } catch (err) {
+    console.error('Session check failed:', err);
+    return null;
+  }
+};
+
+// Log out the user
 export const logout = async () => {
-  const res = await fetch(`${API_BASE}/api/auth/logout`, {
-    method: 'POST',
-    credentials: 'include',
-  });
-  return res.ok;
+  try {
+    const res = await fetch(`${API_BASE}/api/auth/logout`, {
+      method: 'POST',
+      credentials: 'include',
+    });
+    return res.ok;
+  } catch (err) {
+    console.error('Logout failed:', err);
+    return false;
+  }
 };

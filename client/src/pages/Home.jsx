@@ -2,8 +2,9 @@
  * Home.jsx
  * ----------------------------------------------
  * This is the root/main view that determines what to show:
- * - If a user is logged in → show Timer app
+ * - If a user is logged in → show Timer app or Dashboard
  * - If not → show Login/Register form
+ * - Checks session persistence on initial load
  * 
  * Author: Dario Santiago Lopez and ChatGPT 
  * Course: CSC 332 - Mobile & Pervasive Computing
@@ -12,10 +13,11 @@
  * ----------------------------------------------
  */
 
-import React, { useState } from 'react';
-import LoginRegister from './LoginRegister'; // Component for login/register
-import Timer from './Timer';                 // Main workout timer app
-import Dashboard from './Dashboard';         // Saved workouts list
+import React, { useState, useEffect } from 'react';
+import LoginRegister from './LoginRegister';
+import Timer from './Timer';
+import Dashboard from './Dashboard';
+import { checkSession, logout } from '../utils/api';
 
 const Home = () => {
   // Tracks logged-in username (null = not logged in)
@@ -24,33 +26,53 @@ const Home = () => {
   // Tracks current view: 'timer' or 'dashboard'
   const [view, setView] = useState('timer');
 
-  // If not logged in, show login/register form
+  // Check session on first load
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const user = await checkSession();
+        if (user && user.username) {
+          setUsername(user.username);
+        }
+      } catch (err) {
+        console.log('No active session');
+      }
+    };
+    checkAuth();
+  }, []);
+
+  // Handle logout and force re-login
+  const handleLogout = async () => {
+    await logout();
+    setUsername(null); // Triggers login screen
+  };
+
+  // If not logged in, show login/register
   if (!username) {
     return <LoginRegister onLoginSuccess={setUsername} />;
   }
 
   return (
     <div>
-      {/* Navigation Buttons */}
+      {/* Navigation buttons */}
       <div style={{ textAlign: 'center', margin: '1rem' }}>
         {/* Switch to Timer View */}
         <button onClick={() => setView('timer')} style={{ marginRight: '1rem' }}>
           ⏱ Timer
         </button>
-
-        {/* Switch to Dashboard View */}
-        <button onClick={() => setView('dashboard')}>
+        <button onClick={() => setView('dashboard')} style={{ marginRight: '1rem' }}>
           📋 Dashboard
+        </button>
+        <button onClick={handleLogout}>
+          🚪 Logout
         </button>
       </div>
 
-      {/* Conditional rendering based on selected view */}
+      {/* Render view */}
       {view === 'timer' ? (
-        // Show workout timer page
-        <Timer username={username} onLogout={() => setUsername(null)} />
+        <Timer username={username} onLogout={handleLogout} />
       ) : (
-        // Show saved workouts dashboard
-        <Dashboard />
+        <Dashboard onLogout={handleLogout} />
       )}
     </div>
   );

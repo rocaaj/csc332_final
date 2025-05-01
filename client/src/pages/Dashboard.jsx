@@ -3,6 +3,7 @@
  * ----------------------------------------------
  * Displays previously saved workouts from MongoDB.
  * Users can view and delete their workout templates.
+ * Includes logout button when user is logged in.
  * 
  * Author: Dario Santiago Lopez
  * Course: CSC 332 - Mobile & Pervasive Computing
@@ -14,10 +15,10 @@
 import React, { useEffect, useState } from 'react';
 import { getWorkouts, deleteWorkout } from '../utils/api';
 
-const Dashboard = () => {
+const Dashboard = ({ onLogout }) => {
   const [workouts, setWorkouts] = useState([]);
 
-  // Fetch workouts on page load
+  // Fetch workouts on component mount
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -31,7 +32,7 @@ const Dashboard = () => {
     fetchData();
   }, []);
 
-  // Handle deleting a workout
+  // Delete a workout by its ID
   const handleDelete = async (id) => {
     try {
       await deleteWorkout(id);
@@ -48,7 +49,10 @@ const Dashboard = () => {
       margin: 'auto',
       fontFamily: 'monospace'
     }}>
-      <h2>📋 Saved Workouts</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h2>📋 Saved Workouts</h2>
+        <button onClick={onLogout}>🚪 Logout</button>
+      </div>
 
       {workouts.length === 0 ? (
         <p>No workouts found.</p>
@@ -65,7 +69,7 @@ const Dashboard = () => {
             <ul>
               {workout.exercises.map((ex, i) => (
                 <li key={i}>
-                  {ex.name} — Work: {ex.work}s / Rest: {ex.rest}s
+                  {ex.name} — Work: {ex.work}s / Rest: {ex.rest}s / Sets: {ex.sets}
                 </li>
               ))}
             </ul>
