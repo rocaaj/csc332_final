@@ -11,14 +11,14 @@
  * Author: Dario Santiago Lopez and ChatGPT
  * Course: CSC 332 - Mobile & Pervasive Computing
  * Partner: Anthony Roca
- * Date: April 11, 2025
+ * Date: April 11, 2025 (Updated: 4/30/25)
  * ----------------------------------------------
  */
 
 import React, { useEffect, useState, useRef } from 'react';
 import ShakeHandler from '../components/ShakeHandler';
 import WorkoutForm from '../components/WorkoutForm'; 
-import { saveWorkout } from '../utils/api';
+import { saveWorkout, logout } from '../utils/api';    // ← add logout
 
 // Main workout timer component
 const Timer = ({ username, onLogout }) => {
@@ -48,21 +48,16 @@ const Timer = ({ username, onLogout }) => {
   
     // Handle transition from work → rest → next exercise
     useEffect(() => {
-      if (
-        timeLeft > 0 ||
-        !isRunning ||
-        !workout ||
-        currentIndex >= workout.length
-      ) {
-        return;
-      }
-    
+      if (timeLeft > 0 || !isRunning || !workout) return;
+  
       clearInterval(timerRef.current);
-    
+  
       if (isWorking) {
+        // End of work → go to rest
         setIsWorking(false);
-        setTimeLeft(workout[currentIndex].rest); // use workout for dependency consistency
+        setTimeLeft(currentExercise.rest);
       } else {
+        // End of rest → go to next exercise or finish
         const nextIdx = currentIndex + 1;
         if (nextIdx < workout.length) {
           setCurrentIndex(nextIdx);
@@ -73,8 +68,7 @@ const Timer = ({ username, onLogout }) => {
           alert('Workout Complete!');
         }
       }
-    }, [timeLeft, isRunning, workout, currentIndex, isWorking]);
-    
+    }, [timeLeft]);
   
     // Called when the user submits the workout form
 const handleWorkoutSubmit = async (exercises) => {
@@ -96,9 +90,7 @@ const handleWorkoutSubmit = async (exercises) => {
     setCurrentIndex(0);
     setIsWorking(true);
     setTimeLeft(exercises[0].work);
-    setHasStarted(true);
-    setIsRunning(true);
-
+    setHasStarted(false);
   };
   
     // Start the workout
@@ -132,14 +124,19 @@ const handleWorkoutSubmit = async (exercises) => {
       setTimeLeft(0); // Triggers transition immediately
     };
   
-    // Logout the user and clear session
-    const handleLogout = async () => {
-      await fetch('/api/auth/logout', {
-        method: 'GET',
-        credentials: 'include',
-      });
-      onLogout(); // Call parent's logout handler (clears username in Home.jsx)
-    };
+    // Logout the user via our api.js helper, then notify parent
+   const handleLogout = async () => {
+      try {
+        const ok = await logout();      // ← calls GET /api/auth/logout
+        if (ok) {
+          onLogout();                   // clears user in Home.jsx
+        } else {
+          console.error('Logout failed');
+       }
+      } catch (err) {
+        console.error('Logout error:', err);
+     }
+   };
   
     return (
       <div style={{
