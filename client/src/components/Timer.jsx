@@ -90,7 +90,9 @@ const handleWorkoutSubmit = async (exercises) => {
     setCurrentIndex(0);
     setIsWorking(true);
     setTimeLeft(exercises[0].work);
-    setHasStarted(false);
+    setHasStarted(true);
+    setIsRunning(true);
+
   };
   
     // Start the workout

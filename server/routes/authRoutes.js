@@ -15,7 +15,7 @@ const User = require('../models/User');
 const router = express.Router();
 
 // @route   POST /api/auth/register
-// @desc    Register new user
+// @desc    Register a new user
 router.post('/register', async (req, res) => {
   const { username, password } = req.body;
 
@@ -26,7 +26,6 @@ router.post('/register', async (req, res) => {
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
-
     const newUser = new User({ username, passwordHash });
     await newUser.save();
 
@@ -37,7 +36,7 @@ router.post('/register', async (req, res) => {
 });
 
 // @route   POST /api/auth/login
-// @desc    Log in user
+// @desc    Log in a user using Passport's local strategy
 router.post('/login', (req, res, next) => {
   passport.authenticate('local', (err, user, info) => {
     if (err) return next(err);
@@ -51,10 +50,19 @@ router.post('/login', (req, res, next) => {
 });
 
 // @route   GET /api/auth/logout
-// @desc    Log out user
+// @desc    Log out the user and destroy the session
 router.get('/logout', (req, res) => {
-  req.logout(() => {
-    res.json({ message: 'Logged out successfully' });
+  req.logout(function (err) {
+    if (err) {
+      console.error('Logout error:', err);
+      return res.status(500).json({ message: 'Logout failed' });
+    }
+
+    // Destroy session and clear cookie
+    req.session.destroy(() => {
+      res.clearCookie('connect.sid'); // critical for cleaning up cookie session
+      res.status(200).json({ message: 'Logged out successfully' });
+    });
   });
 });
 
