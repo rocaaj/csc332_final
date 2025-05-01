@@ -48,16 +48,21 @@ const Timer = ({ username, onLogout }) => {
   
     // Handle transition from work → rest → next exercise
     useEffect(() => {
-      if (timeLeft > 0 || !isRunning || !workout) return;
-  
+      if (
+        timeLeft > 0 ||
+        !isRunning ||
+        !workout ||
+        currentIndex >= workout.length
+      ) {
+        return;
+      }
+    
       clearInterval(timerRef.current);
-  
+    
       if (isWorking) {
-        // End of work → go to rest
         setIsWorking(false);
-        setTimeLeft(currentExercise.rest);
+        setTimeLeft(workout[currentIndex].rest); // use workout for dependency consistency
       } else {
-        // End of rest → go to next exercise or finish
         const nextIdx = currentIndex + 1;
         if (nextIdx < workout.length) {
           setCurrentIndex(nextIdx);
@@ -68,7 +73,8 @@ const Timer = ({ username, onLogout }) => {
           alert('Workout Complete!');
         }
       }
-    }, [timeLeft]);
+    }, [timeLeft, isRunning, workout, currentIndex, isWorking]);
+    
   
     // Called when the user submits the workout form
 const handleWorkoutSubmit = async (exercises) => {
