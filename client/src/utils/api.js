@@ -44,3 +44,12 @@ export const deleteWorkout = async (id) => {
   });
   return res.json(); // Returns success or error
 };
+
+// Logout the current user (ends the session)
+export const logout = async () => {
+  const res = await fetch(`${API_BASE}/api/auth/logout`, {
+    method: 'POST',
+    credentials: 'include',
+  });
+  return res.ok;
+};
